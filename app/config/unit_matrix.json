@@ -1,0 +1,27 @@
+{
+  "GLU": {
+    "mg/dL": 1,
+    "mmol/L": 0.0555,
+    "standard_unit": "mmol/L"
+  },
+  "Creatinine": {
+    "mg/dL": 1,
+    "μmol/L": 88.4,
+    "umol/L": 88.4,
+    "standard_unit": "μmol/L"
+  },
+  "Urea": {
+    "mg/dL": 1,
+    "mmol/L": 0.357,
+    "standard_unit": "mmol/L"
+  },
+  "Cholesterol": {
+    "mg/dL": 1,
+    "mmol/L": 0.0259,
+    "standard_unit": "mmol/L"
+  },
+  "HbA1c": {
+    "%": 1,
+    "standard_unit": "%"
+  }
+}

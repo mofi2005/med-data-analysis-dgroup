@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8" /><title>数据缺失警报</title></head>
+<body>
+  <h1>数据缺失警报提要</h1>
+  <p>病例ID：{{ case_id or '—' }}</p>
+  <p>患者ID：{{ patient_id }}</p>
+  <ul>
+    {% for warning in warnings %}
+    <li>{{ warning }}</li>
+    {% endfor %}
+  </ul>
+  <p>请补充核心生化指标后重新生成报告。</p>
+</body>
+</html>

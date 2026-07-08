@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>{{ report_title }}</title>
+  <style>
+    body { font-family: "Microsoft YaHei", Arial, sans-serif; margin: 32px; color: #222; line-height: 1.6; }
+    h1, h2, h3 { color: #0b5cab; }
+    .summary { background: #f4f8ff; padding: 16px; border-left: 4px solid #0b5cab; margin-bottom: 20px; }
+    .abnormal { color: #c0392b; font-weight: bold; }
+    .note { color: #555; font-size: 14px; }
+    .chart-box { margin: 12px 0 20px; padding: 8px; background: #fafafa; border: 1px solid #eee; }
+    table { border-collapse: collapse; width: 100%; margin-top: 12px; margin-bottom: 20px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background: #eef4fb; }
+  </style>
+</head>
+<body>
+  {% from "partials/report_sections.html" import render_shap, render_artifact %}
+  <h1>{{ report_title }}</h1>
+  <div class="summary">
+    <p><strong>病例ID：</strong>{{ case_id or '—' }}</p>
+    <p><strong>患者ID：</strong>{{ patient_id }}</p>
+    <p><strong>主诊断：</strong>{{ primary_disease }}</p>
+    <p><strong>临床决策提要：</strong>{{ clinical_summary }}</p>
+    {% if prediction.recommended_model %}
+    <p><strong>AI 路由模型：</strong>{{ prediction.recommended_model }}</p>
+    {% endif %}
+  </div>
+
+  <h2>核心指标</h2>
+  <table>
+    <tr><th>指标</th><th>数值</th><th>单位</th><th>状态</th></tr>
+    {% for lab in primary_labs %}
+    <tr>
+      <td>{{ lab.standard_item_name }}</td>
+      <td class="{{ 'abnormal' if lab.abnormal_flag != 'normal' else '' }}">{{ lab.value }}</td>
+      <td>{{ lab.unit or '' }}</td>
+      <td>{{ lab.abnormal_flag }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+
+  {{ render_shap(shap_explanation, shap_svg) }}
+  {{ render_artifact(artifact_metrics) }}
+</body>
+</html>

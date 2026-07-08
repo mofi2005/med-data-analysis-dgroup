@@ -1,0 +1,26 @@
+{
+  "diabetes": {
+    "primary": ["GLU", "HbA1c"],
+    "secondary": ["INS", "C_peptide"],
+    "report_title": "糖尿病临床数据分析报告",
+    "report_template": "report_diabetes.html"
+  },
+  "kidney_disease": {
+    "primary": ["Creatinine", "Urea", "eGFR"],
+    "secondary": ["Uric_Acid"],
+    "report_title": "肾脏疾病临床数据分析报告",
+    "report_template": "report_kidney.html"
+  },
+  "liver_disease": {
+    "primary": ["ALT", "AST", "TBIL"],
+    "secondary": ["ALP", "GGT", "ALB"],
+    "report_title": "肝脏疾病临床数据分析报告",
+    "report_template": "report_default.html"
+  },
+  "default": {
+    "primary": ["WBC", "HGB", "PLT"],
+    "secondary": [],
+    "report_title": "临床数据分析报告",
+    "report_template": "report_default.html"
+  }
+}

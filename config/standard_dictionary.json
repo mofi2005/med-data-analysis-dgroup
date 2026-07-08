@@ -1,0 +1,124 @@
+{
+  "fields": [
+    {
+      "standard_name": "WBC",
+      "chinese_name": "白细胞",
+      "english_name": "white blood cell",
+      "abbreviation": "WBC",
+      "alias_names": ["白细胞", "wbc", "white blood cell", "White Blood Cell"],
+      "data_type": "numeric",
+      "unit": "10^9/L",
+      "category": "blood_routine"
+    },
+    {
+      "standard_name": "HGB",
+      "chinese_name": "血红蛋白",
+      "english_name": "hemoglobin",
+      "abbreviation": "HGB",
+      "alias_names": ["血红蛋白", "hgb", "hemoglobin", "Hb"],
+      "data_type": "numeric",
+      "unit": "g/L",
+      "category": "blood_routine"
+    },
+    {
+      "standard_name": "PLT",
+      "chinese_name": "血小板",
+      "english_name": "platelet",
+      "abbreviation": "PLT",
+      "alias_names": ["血小板", "plt", "platelet"],
+      "data_type": "numeric",
+      "unit": "10^9/L",
+      "category": "blood_routine"
+    },
+    {
+      "standard_name": "GLU",
+      "chinese_name": "血糖",
+      "english_name": "glucose",
+      "abbreviation": "GLU",
+      "alias_names": ["血糖", "glu", "glucose", "GLUC"],
+      "data_type": "numeric",
+      "unit": "mmol/L",
+      "category": "biochemistry"
+    },
+    {
+      "standard_name": "HbA1c",
+      "chinese_name": "糖化血红蛋白",
+      "english_name": "glycated hemoglobin",
+      "abbreviation": "HbA1c",
+      "alias_names": ["糖化血红蛋白", "hba1c", "HbA1C"],
+      "data_type": "numeric",
+      "unit": "%",
+      "category": "biochemistry"
+    },
+    {
+      "standard_name": "Creatinine",
+      "chinese_name": "肌酐",
+      "english_name": "creatinine",
+      "abbreviation": "CREA",
+      "alias_names": ["肌酐", "creatinine", "crea", "cr", "Cr", "CREA"],
+      "data_type": "numeric",
+      "unit": "μmol/L",
+      "category": "renal_function"
+    },
+    {
+      "standard_name": "Urea",
+      "chinese_name": "尿素",
+      "english_name": "urea",
+      "abbreviation": "Urea",
+      "alias_names": ["尿素", "urea", "BUN"],
+      "data_type": "numeric",
+      "unit": "mmol/L",
+      "category": "renal_function"
+    },
+    {
+      "standard_name": "eGFR",
+      "chinese_name": "肾小球滤过率",
+      "english_name": "estimated glomerular filtration rate",
+      "abbreviation": "eGFR",
+      "alias_names": ["egfr", "eGFR", "肾小球滤过率"],
+      "data_type": "numeric",
+      "unit": "mL/min/1.73m²",
+      "category": "renal_function"
+    },
+    {
+      "standard_name": "ALT",
+      "chinese_name": "丙氨酸氨基转移酶",
+      "english_name": "alanine aminotransferase",
+      "abbreviation": "ALT",
+      "alias_names": ["alt", "ALT", "GPT"],
+      "data_type": "numeric",
+      "unit": "U/L",
+      "category": "liver_function"
+    },
+    {
+      "standard_name": "AST",
+      "chinese_name": "天门冬氨酸氨基转移酶",
+      "english_name": "aspartate aminotransferase",
+      "abbreviation": "AST",
+      "alias_names": ["ast", "AST", "GOT"],
+      "data_type": "numeric",
+      "unit": "U/L",
+      "category": "liver_function"
+    },
+    {
+      "standard_name": "CEA",
+      "chinese_name": "癌胚抗原",
+      "english_name": "carcinoembryonic antigen",
+      "abbreviation": "CEA",
+      "alias_names": ["cea", "CEA", "癌胚抗原"],
+      "data_type": "numeric",
+      "unit": "ng/mL",
+      "category": "tumor_marker"
+    },
+    {
+      "standard_name": "CRP",
+      "chinese_name": "C反应蛋白",
+      "english_name": "C-reactive protein",
+      "abbreviation": "CRP",
+      "alias_names": ["crp", "CRP", "C反应蛋白"],
+      "data_type": "numeric",
+      "unit": "mg/L",
+      "category": "inflammation"
+    }
+  ]
+}

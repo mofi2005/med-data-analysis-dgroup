@@ -1,0 +1,15 @@
+{
+  "WBC": {"reference_low": 3.5, "reference_high": 9.5, "unit": "10^9/L", "critical_low": 2.0, "critical_high": 30.0},
+  "RBC": {"reference_low": 4.0, "reference_high": 5.5, "unit": "10^12/L"},
+  "HGB": {"reference_low": 120, "reference_high": 160, "unit": "g/L", "critical_low": 60},
+  "PLT": {"reference_low": 100, "reference_high": 300, "unit": "10^9/L", "critical_low": 50},
+  "GLU": {"reference_low": 3.9, "reference_high": 6.1, "unit": "mmol/L", "critical_high": 16.7},
+  "HbA1c": {"reference_low": 4.0, "reference_high": 6.0, "unit": "%", "critical_high": 10.0},
+  "ALT": {"reference_low": 7, "reference_high": 40, "unit": "U/L"},
+  "AST": {"reference_low": 13, "reference_high": 35, "unit": "U/L"},
+  "Creatinine": {"reference_low": 44, "reference_high": 133, "unit": "μmol/L", "critical_high": 442},
+  "Urea": {"reference_low": 2.9, "reference_high": 8.2, "unit": "mmol/L"},
+  "eGFR": {"reference_low": 90, "reference_high": 120, "unit": "mL/min/1.73m²", "critical_low": 15},
+  "CEA": {"reference_low": 0, "reference_high": 5.0, "unit": "ng/mL"},
+  "CRP": {"reference_low": 0, "reference_high": 8.0, "unit": "mg/L"}
+}

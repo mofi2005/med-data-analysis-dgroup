@@ -1,0 +1,41 @@
+{
+  "p001_c1": {
+    "case_id": "p001_c1",
+    "artifact_type": "motion",
+    "artifact_level": 2,
+    "psnr": 32.5,
+    "ssim": 0.88,
+    "lpips": 0.12,
+    "edge_preservation": 0.91,
+    "lesion_visibility_score": 0.85,
+    "organ_quality_score": 0.9,
+    "restored_status": true,
+    "note": "轻度运动伪影，去伪影后病灶可见性改善"
+  },
+  "p002_c1": {
+    "case_id": "p002_c1",
+    "artifact_type": "metal",
+    "artifact_level": 3,
+    "psnr": 28.1,
+    "ssim": 0.79,
+    "lpips": 0.21,
+    "edge_preservation": 0.82,
+    "lesion_visibility_score": 0.71,
+    "organ_quality_score": 0.76,
+    "restored_status": true,
+    "note": "金属伪影中等，修复后 SSIM 提升"
+  },
+  "p004_c1": {
+    "case_id": "p004_c1",
+    "artifact_type": "noise",
+    "artifact_level": 1,
+    "psnr": 35.2,
+    "ssim": 0.92,
+    "lpips": 0.08,
+    "edge_preservation": 0.94,
+    "lesion_visibility_score": 0.89,
+    "organ_quality_score": 0.93,
+    "restored_status": false,
+    "note": "低噪声伪影，图像质量良好，适合多模态融合"
+  }
+}
