@@ -1,0 +1,22 @@
+{
+  "p001_c1": {
+    "texture_mean": 14.2,
+    "area_mean": 420.5,
+    "smoothness": 0.09
+  },
+  "p002_c1": {
+    "texture_mean": 18.7,
+    "area_mean": 610.2,
+    "smoothness": 0.11
+  },
+  "p003_c1": {
+    "texture_mean": 15.3,
+    "area_mean": 500.1,
+    "smoothness": 0.08
+  },
+  "10301581": {
+    "texture_mean": 15.3,
+    "area_mean": 500.1,
+    "smoothness": 0.08
+  }
+}
