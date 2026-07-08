@@ -1,0 +1,49 @@
+{% macro render_shap(shap_explanation, shap_svg) %}
+{% if shap_explanation and shap_explanation.feature_importance %}
+<h2>SHAP 特征解释</h2>
+<p>解释方法：{{ shap_explanation.method or '—' }}{% if shap_explanation.base_value is not none %}，基线值：{{ shap_explanation.base_value }}{% endif %}</p>
+{% if shap_svg %}
+<div class="chart-box">{{ shap_svg | safe }}</div>
+{% endif %}
+<table>
+  <tr><th>特征</th><th>SHAP 重要性</th></tr>
+  {% for item in shap_explanation.feature_importance %}
+  <tr>
+    <td>{{ item.name }}</td>
+    <td>{{ item.importance }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% if shap_explanation.sample_explanations %}
+<h3>单病例贡献（Top 特征）</h3>
+<ul>
+  {% for sample in shap_explanation.sample_explanations %}
+  {% for c in sample.contributions[:5] %}
+  <li>{{ c.name }}：{{ c.shap_value }}</li>
+  {% endfor %}
+  {% endfor %}
+</ul>
+{% endif %}
+{% endif %}
+{% endmacro %}
+
+{% macro render_artifact(artifact_metrics) %}
+{% if artifact_metrics %}
+<h2>B 组图像质量指标</h2>
+<table>
+  <tr><th>指标</th><th>数值</th></tr>
+  <tr><td>伪影类型</td><td>{{ artifact_metrics.artifact_type }}</td></tr>
+  <tr><td>伪影等级</td><td>{{ artifact_metrics.artifact_level }}</td></tr>
+  <tr><td>PSNR</td><td>{{ artifact_metrics.psnr }}</td></tr>
+  <tr><td>SSIM</td><td>{{ artifact_metrics.ssim }}</td></tr>
+  <tr><td>LPIPS</td><td>{{ artifact_metrics.lpips }}</td></tr>
+  <tr><td>边缘保留</td><td>{{ artifact_metrics.edge_preservation }}</td></tr>
+  <tr><td>病灶可见性</td><td>{{ artifact_metrics.lesion_visibility_score }}</td></tr>
+  <tr><td>器官质量</td><td>{{ artifact_metrics.organ_quality_score }}</td></tr>
+  <tr><td>修复状态</td><td>{% if artifact_metrics.restored_status %}已修复{% else %}未修复{% endif %}</td></tr>
+</table>
+{% if artifact_metrics.note %}
+<p class="note">说明：{{ artifact_metrics.note }}</p>
+{% endif %}
+{% endif %}
+{% endmacro %}
