@@ -1,0 +1,337 @@
+{
+  "schema_version": "1.0.0",
+  "last_updated": "2026-07-06",
+  "total_fields": 6,
+  "fields": {
+    "WBC": {
+      "standard_name": "WBC",
+      "chinese_name": "白细胞计数",
+      "english_name": "White Blood Cell Count",
+      "abbreviation": "WBC",
+      "alias_names": [
+        "白细胞",
+        "白血球",
+        "白细胞数目",
+        "WBC计数",
+        "Leukocyte",
+        "Leukocyte Count",
+        "White Blood Cells",
+        "白血球计数",
+        "white blood cell",
+        "wbc count",
+        "leucocyte"
+      ],
+      "data_type": "float",
+      "unit": "10^9/L",
+      "reference_range": {
+        "low": 3.5,
+        "high": 9.5
+      },
+      "category": "血常规",
+      "disease_relevance_matrix": {
+        "Infection": {
+          "weight": 0.9,
+          "is_core": true,
+          "threshold_alert": "> 10.0 or < 3.5",
+          "note": "白细胞升高或降低均提示感染或免疫异常，为感染性疾病最核心的筛查指标"
+        },
+        "Leukemia": {
+          "weight": 0.95,
+          "is_core": true,
+          "threshold_alert": "> 30.0 or < 2.0",
+          "note": "显著异常的白细胞计数是白血病诊断与治疗监测的关键指标"
+        },
+        "Sepsis": {
+          "weight": 0.85,
+          "is_core": true,
+          "threshold_alert": "> 12.0 or < 4.0",
+          "note": "脓毒症时白细胞急剧变化，是SOFA评分外的核心辅助判断指标"
+        },
+        "Inflammation": {
+          "weight": 0.7,
+          "is_core": false,
+          "threshold_alert": "> 10.0",
+          "note": "白细胞升高为全身炎性反应的典型标志"
+        }
+      }
+    },
+    "GLU": {
+      "standard_name": "GLU",
+      "chinese_name": "空腹血糖",
+      "english_name": "Fasting Blood Glucose",
+      "abbreviation": "GLU",
+      "alias_names": [
+        "血糖",
+        "空腹血糖",
+        "葡萄糖",
+        "Blood Glucose",
+        "Fasting Glucose",
+        "FPG",
+        "fasting blood sugar",
+        "blood sugar",
+        "GLU",
+        "血清葡萄糖",
+        "Glucose"
+      ],
+      "data_type": "float",
+      "unit": "mmol/L",
+      "reference_range": {
+        "low": 3.9,
+        "high": 6.1
+      },
+      "category": "糖尿病相关",
+      "disease_relevance_matrix": {
+        "Diabetes": {
+          "weight": 1.0,
+          "is_core": true,
+          "threshold_alert": ">= 7.0",
+          "note": "空腹血糖是糖尿病诊断的金标准之一，≥7.0 mmol/L 可诊断为糖尿病"
+        },
+        "Impaired Fasting Glucose": {
+          "weight": 0.95,
+          "is_core": true,
+          "threshold_alert": ">= 6.1 and < 7.0",
+          "note": "空腹血糖受损（IFG）为糖尿病前期状态，用于早期干预策略制定"
+        },
+        "Hypoglycemia": {
+          "weight": 0.85,
+          "is_core": true,
+          "threshold_alert": "< 3.9",
+          "note": "低血糖是糖尿病治疗中的急症风险指标，需紧急干预"
+        },
+        "Metabolic Syndrome": {
+          "weight": 0.75,
+          "is_core": false,
+          "threshold_alert": ">= 6.1",
+          "note": "空腹血糖升高是代谢综合征的核心组分之一"
+        }
+      }
+    },
+    "HbA1c": {
+      "standard_name": "HbA1c",
+      "chinese_name": "糖化血红蛋白",
+      "english_name": "Glycated Hemoglobin A1c",
+      "abbreviation": "HbA1c",
+      "alias_names": [
+        "糖化血红蛋白",
+        "糖化血红素",
+        "Hemoglobin A1c",
+        "Glycohemoglobin",
+        "A1C",
+        "糖基化血红蛋白",
+        "HbA1C",
+        "glycated hemoglobin",
+        "HbA1"
+      ],
+      "data_type": "float",
+      "unit": "%",
+      "reference_range": {
+        "low": 4.0,
+        "high": 6.0
+      },
+      "category": "糖尿病相关",
+      "disease_relevance_matrix": {
+        "Diabetes": {
+          "weight": 1.0,
+          "is_core": true,
+          "threshold_alert": ">= 6.5",
+          "note": "HbA1c是糖尿病诊断与长期血糖控制评估的核心金指标，≥6.5%可确诊糖尿病"
+        },
+        "Prediabetes": {
+          "weight": 0.9,
+          "is_core": true,
+          "threshold_alert": ">= 5.7 and < 6.5",
+          "note": "糖化血红蛋白升高提示糖尿病前期，是生活方式干预的关键窗口期"
+        },
+        "Diabetic Nephropathy": {
+          "weight": 0.8,
+          "is_core": true,
+          "threshold_alert": ">= 7.0",
+          "note": "长期高HbA1c水平与糖尿病肾病进展密切相关，控制HbA1c可延缓肾病发展"
+        },
+        "Cardiovascular Disease": {
+          "weight": 0.65,
+          "is_core": false,
+          "threshold_alert": ">= 7.0",
+          "note": "高HbA1c是心血管疾病的独立危险因素"
+        }
+      }
+    },
+    "Creatinine": {
+      "standard_name": "Creatinine",
+      "chinese_name": "肌酐",
+      "english_name": "Serum Creatinine",
+      "abbreviation": "Cr",
+      "alias_names": [
+        "肌酐",
+        "血肌酐",
+        "血清肌酐",
+        "Creatinine",
+        "Serum Creatinine",
+        "CREA",
+        "CR",
+        "Cr",
+        "creatinine level",
+        "肾功肌酐",
+        "肌酸酐"
+      ],
+      "data_type": "float",
+      "unit": "umol/L",
+      "reference_range": {
+        "low": 44.0,
+        "high": 133.0
+      },
+      "category": "肾功能",
+      "disease_relevance_matrix": {
+        "Nephropathy": {
+          "weight": 1.0,
+          "is_core": true,
+          "threshold_alert": "> 133",
+          "note": "血肌酐升高直接反映肾小球滤过功能下降，是肾病诊断与分期的核心指标"
+        },
+        "Chronic Kidney Disease": {
+          "weight": 1.0,
+          "is_core": true,
+          "threshold_alert": "持续升高",
+          "note": "血肌酐是CKD分期（eGFR计算）的基础参数，贯穿疾病全程管理"
+        },
+        "Acute Kidney Injury": {
+          "weight": 0.95,
+          "is_core": true,
+          "threshold_alert": "48h内升高≥26.5 umol/L",
+          "note": "血肌酐急剧升高是AKI诊断的KDIGO标准核心要素"
+        },
+        "Diabetic Nephropathy": {
+          "weight": 0.8,
+          "is_core": false,
+          "threshold_alert": "> 133",
+          "note": "肌酐结合尿微量白蛋白用于糖尿病肾病的早期筛查与分期"
+        },
+        "Rhabdomyolysis": {
+          "weight": 0.6,
+          "is_core": false,
+          "threshold_alert": "急剧升高",
+          "note": "横纹肌溶解时肌酐显著升高，需紧急评估肾功能"
+        }
+      }
+    },
+    "ALT": {
+      "standard_name": "ALT",
+      "chinese_name": "谷丙转氨酶",
+      "english_name": "Alanine Aminotransferase",
+      "abbreviation": "ALT",
+      "alias_names": [
+        "谷丙转氨酶",
+        "丙氨酸氨基转移酶",
+        "Alanine Aminotransferase",
+        "ALT",
+        "SGPT",
+        "血清谷丙转氨酶",
+        "alanine transaminase",
+        "GPT",
+        "谷氨酸丙酮酸转氨酶",
+        "转氨酶"
+      ],
+      "data_type": "float",
+      "unit": "U/L",
+      "reference_range": {
+        "low": 0.0,
+        "high": 40.0
+      },
+      "category": "肝功能",
+      "disease_relevance_matrix": {
+        "Hepatitis": {
+          "weight": 1.0,
+          "is_core": true,
+          "threshold_alert": "> 40",
+          "note": "ALT是急性与慢性肝炎最敏感的核心标志物，升高程度与肝细胞损伤程度正相关"
+        },
+        "Liver Cirrhosis": {
+          "weight": 0.85,
+          "is_core": true,
+          "threshold_alert": "轻度升高或正常",
+          "note": "肝硬化时ALT可轻度升高，需结合AST/ALT比值综合判断肝损伤模式"
+        },
+        "Fatty Liver": {
+          "weight": 0.85,
+          "is_core": true,
+          "threshold_alert": "> 40",
+          "note": "ALT轻中度升高是非酒精性脂肪性肝病（NAFLD）的常见实验室表现"
+        },
+        "Liver Cancer": {
+          "weight": 0.7,
+          "is_core": false,
+          "threshold_alert": "持续异常升高",
+          "note": "ALT持续显著异常需警惕肝癌风险，需结合AFP与影像学检查"
+        },
+        "Drug-Induced Liver Injury": {
+          "weight": 0.75,
+          "is_core": false,
+          "threshold_alert": "> 3倍正常上限",
+          "note": "ALT急剧升高是药物性肝损伤的典型标志，用于用药安全监测"
+        }
+      }
+    },
+    "CEA": {
+      "standard_name": "CEA",
+      "chinese_name": "癌胚抗原",
+      "english_name": "Carcinoembryonic Antigen",
+      "abbreviation": "CEA",
+      "alias_names": [
+        "癌胚抗原",
+        "Carcinoembryonic Antigen",
+        "CEA",
+        "肿瘤标志物CEA",
+        "carcinoembryonic antigen",
+        "CEA抗原",
+        "结肠癌抗原",
+        "肿瘤胚胎抗原"
+      ],
+      "data_type": "float",
+      "unit": "ng/mL",
+      "reference_range": {
+        "low": 0.0,
+        "high": 5.0
+      },
+      "category": "肿瘤标志物",
+      "disease_relevance_matrix": {
+        "Colorectal Cancer": {
+          "weight": 0.95,
+          "is_core": true,
+          "threshold_alert": "> 5.0",
+          "note": "CEA是结直肠癌筛查、预后评估与术后复发监测的核心肿瘤标志物"
+        },
+        "Gastric Cancer": {
+          "weight": 0.8,
+          "is_core": true,
+          "threshold_alert": "> 5.0",
+          "note": "CEA联合CA19-9、CA72-4用于胃癌的辅助诊断与疗效监测"
+        },
+        "Pancreatic Cancer": {
+          "weight": 0.75,
+          "is_core": false,
+          "threshold_alert": "> 5.0",
+          "note": "CEA联合CA19-9可提高胰腺癌诊断敏感性"
+        },
+        "Lung Cancer": {
+          "weight": 0.7,
+          "is_core": false,
+          "threshold_alert": "> 5.0",
+          "note": "CEA是非小细胞肺癌（尤其是腺癌）的辅助肿瘤标志物"
+        },
+        "Breast Cancer": {
+          "weight": 0.6,
+          "is_core": false,
+          "threshold_alert": "> 5.0",
+          "note": "CEA在转移性乳腺癌中可辅助评估治疗反应与疾病进展"
+        },
+        "Liver Cancer": {
+          "weight": 0.55,
+          "is_core": false,
+          "threshold_alert": "> 5.0",
+          "note": "CEA联合AFP可提高肝癌诊断覆盖率，尤其用于AFP阴性肝癌的补充筛查"
+        }
+      }
+    }
+  }
+}

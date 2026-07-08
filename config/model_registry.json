@@ -1,0 +1,136 @@
+{
+  "registry_version": "1.0.0",
+  "last_updated": "2026-07-06",
+  "total_models": 3,
+  "total_diseases": 3,
+  "diseases_covered": [
+    {
+      "disease_id": "Diabetes_Nephropathy",
+      "chinese_name": "糖尿病肾病",
+      "key_markers": ["GLU", "HbA1c", "Creatinine"]
+    },
+    {
+      "disease_id": "Lung_Oncology",
+      "chinese_name": "肺部肿瘤",
+      "key_markers": ["CEA", "WBC"]
+    },
+    {
+      "disease_id": "Hepatopathy",
+      "chinese_name": "肝脏病变",
+      "key_markers": ["ALT", "AST"]
+    }
+  ],
+  "models": {
+    "Model_A_TimeSeries": {
+      "model_id": "Model_A_TimeSeries",
+      "model_name": "XGBoost 生化时序专注版",
+      "description": "基于 XGBoost 的高精度生化指标时序预测模型。核心依赖连续随访抽血数据（GLU、ALT、Creatinine 等）构建多维时序特征。对影像和文本缺失具有极高容忍度，是代谢类慢病管理的首选引擎。",
+      "version": "3.2.1",
+      "model_type": "gradient_boosting",
+      "required_modalities": {
+        "time_series_steps": { "min": 3, "preferred": 6 },
+        "nlp_entities_count": { "min": 0 },
+        "has_group_E_radiomics": false
+      },
+      "modality_sensitivity": {
+        "time_series_missing": 0.80,
+        "nlp_missing": 0.10,
+        "radiomics_missing": 0.00
+      },
+      "historical_f1_score": {
+        "Diabetes_Nephropathy": 0.89,
+        "Lung_Oncology": 0.72,
+        "Hepatopathy": 0.76
+      },
+      "best_applicable_disease": "Diabetes_Nephropathy",
+      "feature_importance_ranking": [
+        "GLU_slope",
+        "Creatinine_latest",
+        "HbA1c_change_rate",
+        "ALT_trend",
+        "WBC_std"
+      ],
+      "shap_base_features": [
+        "GLU_slope",
+        "Creatinine_latest",
+        "HbA1c_baseline",
+        "time_series_length",
+        "ALT_slope"
+      ]
+    },
+    "Model_B_NLP_Graph": {
+      "model_id": "Model_B_NLP_Graph",
+      "model_name": "BERT 临床文本与知识图谱深度回归版",
+      "description": "基于 RoBERTa-wwm-ext 的深度 NLP 引擎，融合 MedicalNER 实体图谱与 MedicalRelation 三元组信息。擅长从主诉、现病史、影像报告中提取结构化语义，对生化时序缺失高度容忍。",
+      "version": "2.1.0",
+      "model_type": "transformer_ner_graph",
+      "required_modalities": {
+        "time_series_steps": { "min": 0 },
+        "nlp_entities_count": { "min": 3, "preferred": 8 },
+        "has_group_E_radiomics": false
+      },
+      "modality_sensitivity": {
+        "time_series_missing": 0.10,
+        "nlp_missing": 0.85,
+        "radiomics_missing": 0.05
+      },
+      "historical_f1_score": {
+        "Diabetes_Nephropathy": 0.74,
+        "Lung_Oncology": 0.82,
+        "Hepatopathy": 0.85
+      },
+      "best_applicable_disease": "Hepatopathy",
+      "feature_importance_ranking": [
+        "negation_status_count",
+        "disease_entity_count",
+        "anatomical_site_relations",
+        "drug_disease_triples",
+        "symptom_entity_density"
+      ],
+      "shap_base_features": [
+        "病灶尺寸",
+        "否定过滤",
+        "解剖部位关联数",
+        "药物-疾病三元组数",
+        "实体总密度"
+      ]
+    },
+    "Model_C_Multimodal": {
+      "model_id": "Model_C_Multimodal",
+      "model_name": "Deep Multimodal 跨模态联合融合大模型",
+      "description": "基于 Cross-Attention Transformer 的跨模态深度融合模型，同时接入生化时序、NLP 语义图谱、E 组 CT 放射组学特征与 B 组伪影质量评分。理论上限极高，可捕捉跨模态隐式交互，但硬性依赖完整多模态数据输入。",
+      "version": "1.5.0",
+      "model_type": "multimodal_transformer",
+      "required_modalities": {
+        "time_series_steps": { "min": 1, "preferred": 5 },
+        "nlp_entities_count": { "min": 2, "preferred": 6 },
+        "has_group_E_radiomics": true
+      },
+      "modality_sensitivity": {
+        "time_series_missing": 0.15,
+        "nlp_missing": 0.30,
+        "radiomics_missing": 0.70
+      },
+      "historical_f1_score": {
+        "Diabetes_Nephropathy": 0.79,
+        "Lung_Oncology": 0.94,
+        "Hepatopathy": 0.88
+      },
+      "best_applicable_disease": "Lung_Oncology",
+      "feature_importance_ranking": [
+        "CT_radiomics_texture_GLCM",
+        "NER_disease_entity_embedding",
+        "time_series_CEA_trend",
+        "anatomical_site_attention_weight",
+        "image_quality_score_B_group"
+      ],
+      "shap_base_features": [
+        "CT组学纹理特征",
+        "NER疾病实体向量",
+        "CEA时序趋势",
+        "跨模态注意力权重",
+        "B组影像质量分"
+      ]
+    }
+  }
+}
