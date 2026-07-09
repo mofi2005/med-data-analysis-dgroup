@@ -13,12 +13,14 @@
 from __future__ import annotations
 
 # 必须在导入 ORM 模型之前导入 engine + Base, 以确保 create_all 能发现所有表
-from src.backend.database import Base, engine
+from src.backend.database import Base, SessionLocal, engine
 from src.backend.models_db import (  # noqa: F401  # 保证模型类在 create_all 之前被注册
     AnalysisTask,
     DataDictionary,
     Dataset,
+    MLOpsConfig,
     ModelResult,
+    seed_mlops_config,
 )
 
 from fastapi import FastAPI
@@ -27,7 +29,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from src.backend.api_data import data_router
 from src.backend.api_labs import labs_router
 from src.backend.api_models import models_router
-from src.backend.api_multimodal import multimodal_router
+from src.backend.api_multimodal import mlops_demo_router, multimodal_router
 from src.backend.api_nlp import nlp_router
 from src.backend.api_reports import reports_router
 from src.backend.api_stats import stats_router
@@ -37,6 +39,10 @@ from src.backend.api_stats import stats_router
 # ---------------------------------------------------------------------------
 
 Base.metadata.create_all(bind=engine)
+
+# ---- 幂等初始化 MLOps 自进化配置默认参数 ----
+with SessionLocal() as session:
+    seed_mlops_config(session)
 
 # ---------------------------------------------------------------------------
 # FastAPI 应用实例
@@ -73,6 +79,7 @@ app.include_router(labs_router)
 app.include_router(stats_router)
 app.include_router(models_router)
 app.include_router(multimodal_router)
+app.include_router(mlops_demo_router)
 app.include_router(reports_router)
 
 # ---------------------------------------------------------------------------

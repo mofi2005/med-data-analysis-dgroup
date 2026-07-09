@@ -51,6 +51,7 @@ class AdaptiveModelRouter:
         beta: float = 0.3,
         gamma: float = 0.2,
         registry_path: str | None = None,
+        db_session: Any = None,
     ) -> None:
         """初始化路由引擎。
 
@@ -60,6 +61,9 @@ class AdaptiveModelRouter:
             gamma: 缺失惩罚系数 (0~1)。通常 α + β + γ = 1.0。
             registry_path: 模型注册表 JSON 路径；默认使用
                 ``config/model_registry.json``。
+            db_session: 可选的 SQLAlchemy Session，用于从 MLOpsConfig
+                表中实时读取自进化后的最新基础战绩 (P_base)。
+                若为 None 则回退到 JSON 注册表中的初始值。
 
         Raises:
             FileNotFoundError: 若注册表文件不存在。
@@ -67,6 +71,7 @@ class AdaptiveModelRouter:
         self.alpha: float = alpha
         self.beta: float = beta
         self.gamma: float = gamma
+        self._db_session: Any = db_session  # MLOps 自进化战绩数据源
 
         if registry_path is None:
             registry_path = os.path.join(
@@ -98,6 +103,48 @@ class AdaptiveModelRouter:
             raise FileNotFoundError(f"模型注册表文件不存在: {path}")
         with open(path, "r", encoding="utf-8") as f:
             return json.load(f)  # type: ignore[no-any-return]
+
+    # ------------------------------------------------------------------
+    # MLOps 自进化战绩读取
+    # ------------------------------------------------------------------
+
+    def _read_mlops_live_scores(self) -> dict[str, float]:
+        """尝试从 MLOpsConfig 数据库表中读取自进化后的最新基础战绩。
+
+        若 db_session 未提供或读取失败, 回退到硬编码默认值 (85/80/90)。
+
+        Returns:
+            {model_id: base_score_pct} 字典, 值为 0~100 的量纲分数。
+            例如 {"Model_A_TimeSeries": 88.5, "Model_B_NLP_Graph": 83.1, ...}
+        """
+        defaults: dict[str, float] = {
+            "Model_A_TimeSeries": 85.0,
+            "Model_B_NLP_Graph": 80.0,
+            "Model_C_Multimodal": 90.0,
+        }
+
+        if self._db_session is None:
+            return dict(defaults)
+
+        key_to_model: dict[str, str] = {
+            "model_a_base_score": "Model_A_TimeSeries",
+            "model_b_base_score": "Model_B_NLP_Graph",
+            "model_c_base_score": "Model_C_Multimodal",
+        }
+
+        try:
+            from src.backend.models_db import MLOpsConfig
+
+            for config_key, model_id in key_to_model.items():
+                row = self._db_session.query(MLOpsConfig).filter(
+                    MLOpsConfig.key == config_key
+                ).first()
+                if row and row.value is not None:
+                    defaults[model_id] = float(row.value)
+        except Exception:
+            pass  # 读取失败: 静默回退到默认值
+
+        return defaults
 
     # ------------------------------------------------------------------
     # 个案契合度与缺失评估
@@ -210,10 +257,19 @@ class AdaptiveModelRouter:
         model_scores: dict[str, float] = {}
         model_details: dict[str, dict[str, Any]] = {}
 
+        # 尝试从 MLOpsConfig 数据库读取自进化后的最新基础战绩
+        mlops_live_scores = self._read_mlops_live_scores()
+        mlops_used = self._db_session is not None
+
         for model_id, model_info in self._models.items():
-            # 1. 历史战绩
-            hist_scores = model_info.get("historical_f1_score", {})
-            historical_f1 = hist_scores.get(target_disease, 0.5)
+            # 1. 历史战绩: 优先使用 MLOps 自进化实时战绩, 其次回退 JSON 注册表
+            if model_id in mlops_live_scores:
+                historical_f1 = mlops_live_scores[model_id] / 100.0
+                score_source = "mlops_live"
+            else:
+                hist_scores = model_info.get("historical_f1_score", {})
+                historical_f1 = hist_scores.get(target_disease, 0.5)
+                score_source = "json_registry"
 
             # 2. 模态契合度 & 缺失惩罚
             modality_fit, missing_penalty = self._evaluate_case_fit(
@@ -235,6 +291,7 @@ class AdaptiveModelRouter:
                 "modality_fit": round(modality_fit, 4),
                 "missing_penalty": round(missing_penalty, 4),
                 "raw_score": round(score, 4),
+                "score_source": score_source,
             }
 
         # ---- 选出最高分模型 ----
@@ -244,7 +301,7 @@ class AdaptiveModelRouter:
         # ---- 生成详细解释日志 ----
         routing_reason = self._generate_routing_reason(
             patient_profile, patient_id, target_disease, disease_name,
-            model_details, model_scores, selected_model,
+            model_details, model_scores, selected_model, mlops_used, mlops_live_scores,
         )
 
         return {
@@ -254,16 +311,20 @@ class AdaptiveModelRouter:
             "selected_model": selected_model,
             "winning_score": winning_score,
             "all_model_scores": model_scores,
+            "mlops_enhanced": mlops_used,
+            "mlops_live_scores": mlops_live_scores if mlops_used else {},
             "model_details": {
                 k: {
                     "historical_f1": v["historical_f1"],
                     "modality_fit": v["modality_fit"],
                     "missing_penalty": v["missing_penalty"],
+                    "score_source": v["score_source"],
                 }
                 for k, v in model_details.items()
             },
             "routing_reason": routing_reason,
-            "execution_status": "Ready_for_Inference",
+            "execution_status": "Ready_for_Inference"
+            + (" (MLOps自进化战绩已注入)" if mlops_used else ""),
         }
 
     def _generate_routing_reason(
@@ -275,6 +336,8 @@ class AdaptiveModelRouter:
         details: dict[str, dict[str, Any]],
         scores: dict[str, float],
         winner: str,
+        mlops_used: bool = False,
+        mlops_scores: dict[str, float] | None = None,
     ) -> str:
         """生成可解释的中文旅由决策日志。
 
@@ -305,6 +368,9 @@ class AdaptiveModelRouter:
                      f"NLP实体数={nlp_count}, "
                      f"E组组学={'有' if has_rad else '无'}, "
                      f"全局缺失率={missing_rate:.0%}")
+        # MLOps 自进化战绩提示
+        if mlops_used and mlops_scores:
+            lines.append(f"🔥 MLOps自进化战绩: {mlops_scores}")
         lines.append("")
         lines.append(f"▶ 胜出模型: {winner} ({winner_name})")
         lines.append(f"   终极得分: {scores[winner]:.1f}/100")
@@ -322,7 +388,7 @@ class AdaptiveModelRouter:
 
             marker = " ★ 胜出" if mid == winner else ""
             lines.append(f"  #{rank} {mid} ({name}){marker}")
-            lines.append(f"     历史战绩({disease}): {hist:.0%}")
+            lines.append(f"     历史战绩({disease}): {hist:.0%} (来源: {d.get('score_source', 'json')})")
             lines.append(f"     模态契合度: {mfit:.2f}  |  缺失惩罚: {mpen:.2f}")
             lines.append(f"     最终得分: {score:.1f} = "
                          f"α({self.alpha})×{hist:.0%} + "

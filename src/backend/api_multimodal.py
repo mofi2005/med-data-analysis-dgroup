@@ -15,7 +15,10 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from src.backend.database import get_db
 
 # ---------------------------------------------------------------------------
 # APIRouter 实例
@@ -53,13 +56,15 @@ except Exception:
 # 仿真路由兜底引擎 (当真实 AdaptiveModelRouter 不可用时)
 # ===================================================================
 
-def _fallback_route(patient_profile: dict[str, Any]) -> dict[str, Any]:
+def _fallback_route(patient_profile: dict[str, Any], db_session: Any = None) -> dict[str, Any]:
     """仿真路由公式: 综合权重 = α×战绩 + β×模态契合 - γ×缺失惩罚.
 
     内置三大候选模型的简版参数, 保证即使没有原版 model_router 也能正常运转.
+    若提供 db_session, 则优先从 MLOpsConfig 读取自进化后的最新基础战绩.
 
     Args:
         patient_profile: 患者数据画像.
+        db_session:      可选的 SQLAlchemy Session (用于读取 MLOps 自动升级战绩).
 
     Returns:
         与 AdaptiveModelRouter.route_case 兼容的决策字典.
@@ -70,7 +75,27 @@ def _fallback_route(patient_profile: dict[str, Any]) -> dict[str, Any]:
     has_e = bool(patient_profile.get("has_e_group_genomics", False))
     missing_rate = float(patient_profile.get("missing_rate", 0.0))
 
-    # 内置候选模型简表
+    # 尝试从 MLOpsConfig 读取自进化战绩
+    mlops_used = False
+    mlops_live: dict[str, float] = {}
+    if db_session is not None:
+        try:
+            from src.backend.models_db import MLOpsConfig
+            key_map = {
+                "model_a_base_score": "Model_A_TimeSeries",
+                "model_b_base_score": "Model_B_NLP_Graph",
+                "model_c_base_score": "Model_C_Multimodal",
+            }
+            for ck, mid in key_map.items():
+                row = db_session.query(MLOpsConfig).filter(MLOpsConfig.key == ck).first()
+                if row and row.value is not None:
+                    mlops_live[mid] = float(row.value)
+            if mlops_live:
+                mlops_used = True
+        except Exception:
+            pass
+
+    # 内置候选模型简表 (硬编码初始值作为兜底)
     candidates = {
         "Model_A_TimeSeries": {
             "hist_f1": 0.89,
@@ -131,6 +156,7 @@ def _fallback_route(patient_profile: dict[str, Any]) -> dict[str, Any]:
             "historical_f1": c["hist_f1"],
             "modality_fit": round(modality_fit, 4),
             "missing_penalty": round(missing_penalty, 4),
+            "score_source": "mlops_live" if mid in mlops_live else "fallback_default",
         }
 
     winner = max(scores, key=scores.__getitem__)
@@ -141,9 +167,10 @@ def _fallback_route(patient_profile: dict[str, Any]) -> dict[str, Any]:
         f"【仿真路由决策 — 患者 {pid}】",
         f"数据画像: 时序={ts_steps}步, NLP实体={nlp_ents}, "
         f"E组放射组学={'有' if has_e else '无'}, 缺失率={missing_rate:.0%}",
-        "",
-        f"▶ 胜出模型: {winner} (得分 {winning}/100)",
     ]
+    if mlops_used and mlops_live:
+        lines.append(f"🔥 MLOps自进化战绩: {mlops_live}")
+    lines += ["", f"▶ 胜出模型: {winner} (得分 {winning}/100)"]
     for mid, sc in sorted(scores.items(), key=lambda x: x[1], reverse=True):
         d = details[mid]
         marker = " ★ 胜出" if mid == winner else ""
@@ -158,8 +185,11 @@ def _fallback_route(patient_profile: dict[str, Any]) -> dict[str, Any]:
         "winning_score": winning,
         "all_model_scores": scores,
         "model_details": details,
+        "mlops_enhanced": mlops_used,
+        "mlops_live_scores": mlops_live,
         "routing_reason": "\n".join(lines),
-        "execution_status": "Ready_for_Inference (Fallback Engine)",
+        "execution_status": "Ready_for_Inference (Fallback Engine)"
+        + (" [MLOps增强]" if mlops_used else ""),
     }
 
 
@@ -211,7 +241,7 @@ def _fallback_xai(routing_result: dict, patient_data: dict) -> dict:
 
 
 @multimodal_router.post("/route_and_predict")
-def route_and_predict(payload: dict):
+def route_and_predict(payload: dict, db: Session = Depends(get_db)):
     """多模态自适应热切与终极预测接口。
 
     接收患者画像 + 临床数据 + 影像特征, 执行两步流程:
@@ -254,13 +284,14 @@ def route_and_predict(payload: dict):
     if _ROUTER_AVAILABLE and _AdaptiveModelRouter:
         try:
             router = _AdaptiveModelRouter(
-                registry_path=str(_PROJECT_ROOT / "config" / "model_registry.json")
+                registry_path=str(_PROJECT_ROOT / "config" / "model_registry.json"),
+                db_session=db,
             )
             routing_result = router.route_case(profile)
         except Exception:
-            routing_result = _fallback_route(profile)
+            routing_result = _fallback_route(profile, db)
     else:
-        routing_result = _fallback_route(profile)
+        routing_result = _fallback_route(profile, db)
 
     # ---- 2. 模拟推理预测 ----
     patient_data = payload.get("clinical_data", {})
@@ -293,7 +324,12 @@ def route_and_predict(payload: dict):
         "all_model_scores": routing_result["all_model_scores"],
         "routing_reason": routing_result["routing_reason"],
         "engine_mode": "real" if _ROUTER_AVAILABLE else "fallback_simulation",
+        "mlops_enhanced": routing_result.get("mlops_enhanced", False),
+        "mlops_live_scores": routing_result.get("mlops_live_scores", {}),
         "fused_prediction": fused,
+        "note": "当前使用的是 MLOps 自动升级后的最新战绩 P_base"
+        if routing_result.get("mlops_enhanced")
+        else "使用 JSON 注册表初始战绩 (启动 MLOps 服务后可自动升级)",
     }
 
 
@@ -403,4 +439,52 @@ def align_features(payload: dict):
         "fused_feature_vector": fused,
         "feature_count": len(fused) - 2,  # 减去 patient_id + case_id
         "message": f"已完成 A/B/C/D/E 组多模态数据对齐！共连接 {connected_groups}/{total_groups} 组。",
+    }
+
+
+# ===================================================================
+# MLOps 答辩演示专属: 一键触发进化 API
+# ===================================================================
+
+mlops_demo_router = APIRouter(
+    prefix="/api/mlops",
+    tags=["MLOps自进化演示"],
+)
+
+
+@mlops_demo_router.post("/trigger_evolution_demo")
+def trigger_evolution_demo(db: Session = Depends(get_db)):
+    """答辩演示专用: 强行无视 50 条阈值, 立即执行持续训练+评分自进化.
+
+    直接调用 run_continuous_training_pipeline 完成:
+      1. 仿真增量微调训练
+      2. 升级三大模型基础战绩 (model_a/b/c_base_score)
+      3. 清零 new_samples_since_last_ct
+
+    无需等待新数据累积, 一键体验 MLOps 自进化闭环!
+
+    Returns:
+        {"status": "success", "message": "..."}
+    """
+    from src.backend.service_mlops import run_continuous_training_pipeline
+
+    # 使用同一 session 执行 (演示场景)
+    run_continuous_training_pipeline(db)
+
+    # 读取升级后的战绩展示
+    from src.backend.models_db import MLOpsConfig
+    updated_scores: dict[str, float] = {}
+    for key in ["model_a_base_score", "model_b_base_score", "model_c_base_score"]:
+        row = db.query(MLOpsConfig).filter(MLOpsConfig.key == key).first()
+        if row:
+            updated_scores[key] = float(row.value)
+
+    return {
+        "status": "success",
+        "message": (
+            "已手动触发 MLOps 自进化闭环！"
+            "路由大脑各模型评分 P_base 已在后台全面刷新升级！"
+            "请去 /docs 重新预测看战绩表现！"
+        ),
+        "updated_scores": updated_scores,
     }

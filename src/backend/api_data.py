@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Optional
 
 import pandas as pd
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, Query, UploadFile
 from sqlalchemy import exists
 from sqlalchemy.orm import Session
 
@@ -114,6 +114,7 @@ async def upload_dataset_api(
     file: UploadFile = File(...),
     source_type: str = Form(default="D组"),
     db: Session = Depends(get_db),
+    background_tasks: BackgroundTasks = None,  # noqa: B008  # type: ignore[assignment]
 ):
     """上传医学数据文件 (.csv / .xlsx / .json) 并注册为数据集。
 
@@ -180,6 +181,12 @@ async def upload_dataset_api(
     db.add(dataset)
     db.commit()
     db.refresh(dataset)
+
+    # MLOps 自动触发钩子: 每次上传数据均累加新样本计数器,
+    # 若累积 >= ct_trigger_threshold 则自动在后台执行持续训练+评分自进化
+    if background_tasks is not None:
+        from src.backend.service_mlops import check_and_trigger_ct
+        check_and_trigger_ct(db, background_tasks, new_sample_count=row_count)
 
     return {
         "dataset_id": dataset_id,

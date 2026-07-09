@@ -74,6 +74,88 @@ class Dataset(Base):
 
 
 # ---------------------------------------------------------------------------
+# 5. MLOps 动态监控配置表 (自进化系统元数据)
+# ---------------------------------------------------------------------------
+
+class MLOpsConfig(Base):
+    """MLOps 动态监控配置表 —— 管理模型自进化的全局元数据。
+
+    为持续训练 (Continuous Training) 与自动评分自进化引擎
+    提供持久化的配置参数存储, 支持运行时动态读写。
+
+    字段说明:
+      - key:          参数键名 (主键, 唯一索引)
+      - value:        参数当前数值 (Float)
+      - description:  参数中文描述
+      - updated_at:   最近更新时间
+    """
+
+    __tablename__ = "mlops_config"
+
+    key = Column(
+        String(100),
+        primary_key=True,
+        unique=True,
+        index=True,
+        comment="MLOps 参数键名 (主键唯一索引)",
+    )
+    value = Column(
+        Float, nullable=False, default=0.0, comment="参数当前数值"
+    )
+    description = Column(
+        String(500), nullable=True, comment="参数中文描述"
+    )
+    updated_at = Column(
+        DateTime, nullable=False, default=datetime.now, comment="最近更新时间"
+    )
+
+
+# ---------------------------------------------------------------------------
+# MLOps 默认种子参数 (幂等: 已有则不覆盖)
+# ---------------------------------------------------------------------------
+
+DEFAULT_MLOPS_CONFIG: list[dict] = [
+    {"key": "model_a_base_score", "value": 85.0,
+     "description": "Model A(生化时序XGBoost)当前基础战绩P_base"},
+    {"key": "model_b_base_score", "value": 80.0,
+     "description": "Model B(NLP临床文本)当前基础战绩P_base"},
+    {"key": "model_c_base_score", "value": 90.0,
+     "description": "Model C(深度多模态大模型)当前基础战绩P_base"},
+    {"key": "new_samples_since_last_ct", "value": 0.0,
+     "description": "自上次自动重新训练以来新积累的病历数据条数"},
+    {"key": "ct_trigger_threshold", "value": 50.0,
+     "description": "触发自动持续训练(CT)的新数据积累条数阈值"},
+]
+
+
+def seed_mlops_config(session):
+    """幂等地初始化 MLOps 自进化配置默认参数。
+
+    若 mlops_config 表中已有记录则跳过, 不会覆盖用户手动调整后的值。
+
+    Args:
+        session: SQLAlchemy Session 实例。
+    """
+    from sqlalchemy import exists as _exists
+
+    count = session.query(MLOpsConfig).count()
+    if count > 0:
+        return  # 已有数据，跳过
+
+    now = datetime.now()
+    for item in DEFAULT_MLOPS_CONFIG:
+        session.add(MLOpsConfig(
+            key=item["key"],
+            value=item["value"],
+            description=item["description"],
+            updated_at=now,
+        ))
+
+    session.commit()
+    print(f"[INFO] MLOps 自进化配置已初始化: {len(DEFAULT_MLOPS_CONFIG)} 条默认参数入库")
+
+
+# ---------------------------------------------------------------------------
 # 2. 字段字典表
 # ---------------------------------------------------------------------------
 
